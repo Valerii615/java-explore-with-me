@@ -11,4 +11,5 @@ public interface StatsService {
     void addEndpoint(EndpointHit endpointHit);
 
     List<ViewStats> getStats(LocalDateTime startTime, LocalDateTime endTime, List<String> uris, Boolean unique);
+
 }
