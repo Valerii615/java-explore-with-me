@@ -13,8 +13,8 @@ import java.util.stream.Collectors;
 
 @Mapper
 public interface CompilationMapper {
-    @Mapping(source = "events", target = "events", qualifiedByName = "eventsToIds")
-    NewCompilationDto toNewDto(Compilation compilation);
+//    @Mapping(source = "events", target = "events", qualifiedByName = "eventsToIds")
+//    NewCompilationDto toNewDto(Compilation compilation);
 
     @Mapping(target = "events", ignore = true)
     Compilation toCompilation(NewCompilationDto newCompilationDto);
@@ -22,14 +22,14 @@ public interface CompilationMapper {
     CompilationDto toCompilationDto(Compilation compilation);
 
     List<CompilationDto> toCompilationDtoList(List<Compilation> compilations);
-
-    @Named("eventsToIds")
-    default List<Long> eventsToIds(List<Event> events) {
-        if (events == null) {
-            return null;
-        }
-        return events.stream()
-                .map(Event::getId)
-                .collect(Collectors.toList());
-    }
+//
+//    @Named("eventsToIds")
+//    default List<Long> eventsToIds(List<Event> events) {
+//        if (events == null) {
+//            return null;
+//        }
+//        return events.stream()
+//                .map(Event::getId)
+//                .collect(Collectors.toList());
+//    }
 }

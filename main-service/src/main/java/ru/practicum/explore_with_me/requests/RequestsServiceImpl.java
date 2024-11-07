@@ -33,7 +33,7 @@ public class RequestsServiceImpl implements RequestsService {
     @Override
     public List<ParticipationRequestDto> getRequests(Long userId) {
         log.info("Get requests for {}", userId);
-        User user = userRepository.findById(userId)
+        userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found"));
         List<ParticipationRequest> participationRequestList = requestsRepository.findByRequesterId(userId);
         log.info("Found {} requests", participationRequestList.size());

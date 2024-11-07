@@ -26,6 +26,4 @@ public interface EventMapper {
     List<EventFullDto> toEventFullDtoList(List<Event> events);
 
     LocationDto toDto(Location location);
-
-    Location fromDto(LocationDto locationDto);
 }

@@ -59,32 +59,4 @@ public interface EventRepository extends JpaRepository<Event, Long>, QuerydslPre
             where e.id = :eventId and e.state = :state
             """)
     Event getPublishedEventById(Long eventId, State state);
-
-
-    @Query("""
-            select e
-            from Event e
-            where 
-                (:text is null or 
-                    e.annotation like concat('%', :text, '%') 
-                    or e.description like concat('%', :text, '%'))
-            and (:categories is null or e.category.id in :categories)
-            and (:paid is null or e.paid = :paid)
-            and e.eventDate between :rangeStart and :rangeEnd
-            and (:onlyAvailable is false or e.participantLimit > e.confirmedRequests)
-            group by e.id
-            order by 
-                case 
-                    when :sort is null then e.eventDate
-                    else :sort 
-                end
-            """)
-    List<Event> getAllPublishedEvents(String text,
-                                      List<Long> categories,
-                                      Boolean paid,
-                                      LocalDateTime rangeStart,
-                                      LocalDateTime rangeEnd,
-                                      Boolean onlyAvailable,
-                                      String sort,
-                                      Pageable pageable);
 }
