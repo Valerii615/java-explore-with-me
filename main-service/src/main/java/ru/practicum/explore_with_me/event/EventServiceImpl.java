@@ -283,10 +283,8 @@ public class EventServiceImpl implements EventService {
     }
 
     void setConfirmedRequestsList(List<Event> events) {
-        events.forEach(event -> {
-            event.setConfirmedRequests(requestsRepository
-                    .countByStatusAndEventId(Status.CONFIRMED, event.getId()));
-        });
+        events.forEach(event -> event.setConfirmedRequests(requestsRepository
+                    .countByStatusAndEventId(Status.CONFIRMED, event.getId())));
     }
 
     void setViews(List<Event> events) {
@@ -296,10 +294,8 @@ public class EventServiceImpl implements EventService {
         if (viewStatsList != null) {
             Map<String, Long> uriAndHit = viewStatsList.stream()
                     .collect(Collectors.toMap(ViewStats::getUri, ViewStats::getHits));
-            events.forEach(event -> {
-                event.setViews(uriAndHit
-                        .getOrDefault("/events/" + event.getId(), 0L));
-            });
+            events.forEach(event -> event.setViews(uriAndHit
+                    .getOrDefault("/events/" + event.getId(), 0L)));
         }
     }
 
