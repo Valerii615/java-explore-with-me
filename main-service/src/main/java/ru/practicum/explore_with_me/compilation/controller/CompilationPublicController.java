@@ -5,8 +5,8 @@ import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.explore_with_me.compilation.services.CompilationService;
 import ru.practicum.explore_with_me.compilation.model.dto.CompilationDto;
+import ru.practicum.explore_with_me.compilation.services.CompilationService;
 
 import java.util.List;
 

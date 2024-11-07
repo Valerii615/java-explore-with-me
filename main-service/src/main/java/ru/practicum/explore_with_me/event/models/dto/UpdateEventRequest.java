@@ -18,7 +18,7 @@ import static ru.practicum.explore_with_me.util.Util.DATE_FORMAT;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class UpdateEventUserRequest {
+public class UpdateEventRequest {
     @Size(min = 20, max = 2000)
     private String annotation;
     private Long category;

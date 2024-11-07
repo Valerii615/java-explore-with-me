@@ -5,9 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.explore_with_me.category.mappers.CategoryMapper;
-import ru.practicum.explore_with_me.category.repositories.CategoryRepository;
 import ru.practicum.explore_with_me.category.models.Category;
 import ru.practicum.explore_with_me.category.models.dto.CategoryDto;
+import ru.practicum.explore_with_me.category.repositories.CategoryRepository;
 import ru.practicum.explore_with_me.exceptions.NotFoundException;
 
 import java.util.List;

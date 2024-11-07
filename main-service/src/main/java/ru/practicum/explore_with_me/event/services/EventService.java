@@ -9,7 +9,7 @@ import java.util.List;
 public interface EventService {
     EventFullDto addEvent(Long userId, NewEventDto newEventDto);
 
-    EventFullDto updateEvent(Long eventId, UpdateEventAdminRequest updateEventAdminRequest);
+    EventFullDto updateEvent(Long eventId, UpdateEventRequest updateEventAdminRequest);
 
     List<EventFullDto> getAdminEvents(List<Long> users,
                                       List<String> states,
@@ -40,5 +40,5 @@ public interface EventService {
 
     EventRequestStatusUpdateResult eventRequestStatusUpdateResult(Long userId, Long eventId, EventRequestStatusUpdateRequest updateRequest);
 
-    EventFullDto updateEvent(Long userId, Long eventId, UpdateEventUserRequest updateEventUserRequest);
+    EventFullDto updateEvent(Long userId, Long eventId, UpdateEventRequest updateEventUserRequest);
 }

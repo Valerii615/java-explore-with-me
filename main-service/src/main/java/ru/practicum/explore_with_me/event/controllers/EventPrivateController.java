@@ -7,8 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.explore_with_me.event.services.EventService;
 import ru.practicum.explore_with_me.event.models.dto.*;
+import ru.practicum.explore_with_me.event.services.EventService;
 import ru.practicum.explore_with_me.requests.model.dto.ParticipationRequestDto;
 
 import java.util.List;
@@ -44,7 +44,8 @@ public class EventPrivateController {
     @PatchMapping("/{eventId}")
     public EventFullDto updateEvent(@PathVariable Long userId,
                                     @PathVariable Long eventId,
-                                    @RequestBody @Valid UpdateEventUserRequest updateEventUserRequest) {
+                                    @RequestBody @Valid UpdateEventRequest updateEventUserRequest) {
+        log.info("Start of endpoint processing (patch) /users/{}/events/{}", userId, eventId);
         return eventService.updateEvent(userId, eventId, updateEventUserRequest);
     }
 

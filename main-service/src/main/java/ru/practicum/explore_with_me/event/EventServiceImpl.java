@@ -10,8 +10,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.explore_with_me.StatClient;
-import ru.practicum.explore_with_me.category.repositories.CategoryRepository;
 import ru.practicum.explore_with_me.category.models.Category;
+import ru.practicum.explore_with_me.category.repositories.CategoryRepository;
 import ru.practicum.explore_with_me.event.mappers.EventMapper;
 import ru.practicum.explore_with_me.event.models.Event;
 import ru.practicum.explore_with_me.event.models.State;
@@ -24,15 +24,18 @@ import ru.practicum.explore_with_me.exceptions.ConflictException;
 import ru.practicum.explore_with_me.exceptions.NotFoundException;
 import ru.practicum.explore_with_me.models.ViewStats;
 import ru.practicum.explore_with_me.requests.mappers.RequestsMapper;
-import ru.practicum.explore_with_me.requests.repositories.RequestsRepository;
 import ru.practicum.explore_with_me.requests.model.ParticipationRequest;
 import ru.practicum.explore_with_me.requests.model.Status;
 import ru.practicum.explore_with_me.requests.model.dto.ParticipationRequestDto;
-import ru.practicum.explore_with_me.user.repositories.UserRepository;
+import ru.practicum.explore_with_me.requests.repositories.RequestsRepository;
 import ru.practicum.explore_with_me.user.models.User;
+import ru.practicum.explore_with_me.user.repositories.UserRepository;
+import ru.practicum.explore_with_me.util.Util;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static ru.practicum.explore_with_me.event.models.QEvent.event;
 import static ru.practicum.explore_with_me.util.Util.DATE_FORMATTER;
@@ -77,58 +80,10 @@ public class EventServiceImpl implements EventService {
 
     @Override
     @Transactional
-    public EventFullDto updateEvent(Long eventId, UpdateEventAdminRequest updateEvent) {
+    public EventFullDto updateEvent(Long eventId, UpdateEventRequest updateEvent) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
-        if (updateEvent.getAnnotation() != null) {
-            event.setAnnotation(updateEvent.getAnnotation());
-        }
-        if (updateEvent.getCategory() != null) {
-            Category category = categoryRepository.findById(updateEvent.getCategory())
-                    .orElseThrow(() -> new NotFoundException("Category with id " + updateEvent.getCategory() + " not found"));
-            event.setCategory(category);
-        }
-        if (updateEvent.getDescription() != null) {
-            event.setDescription(updateEvent.getDescription());
-        }
-        if (updateEvent.getEventDate() != null) {
-            if (updateEvent.getEventDate().isAfter(LocalDateTime.now().plusHours(1))) {
-                event.setEventDate(updateEvent.getEventDate());
-            } else {
-                throw new BadRequestException("The date and time for which the event is scheduled cannot be earlier than one hours from the current moment");
-            }
-        }
-        if (updateEvent.getLocation() != null) {
-            event.setLocation(updateEvent.getLocation());
-        }
-        if (updateEvent.getPaid() != null) {
-            event.setPaid(updateEvent.getPaid());
-        }
-        if (updateEvent.getParticipantLimit() != null) {
-            event.setParticipantLimit(updateEvent.getParticipantLimit());
-        }
-        if (updateEvent.getRequestModeration() != null) {
-            event.setRequestModeration(updateEvent.getRequestModeration());
-        }
-        if (updateEvent.getStateAction() != null) {
-            if (updateEvent.getStateAction().equals(StateAction.PUBLISH_EVENT)) {
-                if (event.getState().equals(State.PENDING)) {
-                    event.setState(State.PUBLISHED);
-                } else {
-                    throw new ConflictException("Cannot publish the event because it's not in the right state: " + event.getState().name());
-                }
-            }
-            if (updateEvent.getStateAction().equals(StateAction.REJECT_EVENT)) {
-                if (!event.getState().equals(State.PUBLISHED)) {
-                    event.setState(State.CANCELED);
-                } else {
-                    throw new ConflictException("The event cannot be canceled because it is in the wrong state: " + event.getState().name());
-                }
-            }
-        }
-        if (updateEvent.getTitle() != null) {
-            event.setTitle(updateEvent.getTitle());
-        }
+        validUpdate(event, updateEvent);
         Event savedEvent = eventRepository.save(event);
         log.info("Saved event: {}", savedEvent);
         return eventMapper.toEventFullDto(savedEvent);
@@ -149,29 +104,22 @@ public class EventServiceImpl implements EventService {
                 " rangeEnd: {}," +
                 " from: {}," +
                 " size: {}", users, states, categories, rangeStart, rangeEnd, from, size);
+        if (rangeStart == null) {
+            rangeStart = Util.DATE_TIME_MIN;
+        }
+        if (rangeEnd == null) {
+            rangeEnd = Util.DATE_TIME_MAX;
+        }
         List<State> statesList = null;
         if (states != null) {
             statesList = states.stream().map(String::toUpperCase).map(State::valueOf).toList();
         }
-        List<Event> eventList = eventRepository
+        List<Event> events = eventRepository
                 .getAdminEvents(users, statesList, categories, rangeStart, rangeEnd, from, size);
-        for (Event event : eventList) {
-            event.setConfirmedRequests(requestsRepository.countByStatusAndEventId(Status.CONFIRMED, event.getId()));
-        }
-
-        for (Event event : eventList) {
-            List<ViewStats> viewStats = statClient
-                    .getStats(event.getCreatedOn(), LocalDateTime.now(),
-                            List.of("/events/" + event.getId()), true);
-            if (!viewStats.isEmpty()) {
-                event.setViews(viewStats.getFirst().getHits());
-            } else {
-                event.setViews(0L);
-            }
-        }
-
-        log.info("Found admin {} events", eventList.size());
-        return eventMapper.toEventFullDtoList(eventList);
+        setConfirmedRequestsList(events);
+        setViews(events);
+        log.info("Found admin {} events", events.size());
+        return eventMapper.toEventFullDtoList(events);
     }
 
     public List<EventShortDto> getEventsByUserId(Long userId, Integer from, Integer size) {
@@ -200,10 +148,15 @@ public class EventServiceImpl implements EventService {
                 " sort:{}," +
                 " from:{}," +
                 " size:{}", text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size);
+        if (rangeStart == null) {
+            rangeStart = Util.DATE_TIME_MIN;
+        }
+        if (rangeEnd == null) {
+            rangeEnd = Util.DATE_TIME_MAX;
+        }
         if (rangeEnd.isBefore(rangeStart)) {
             throw new BadRequestException("The start time must be earlier than the end.");
         }
-
         Pageable pageable;
         switch (sort) {
             case "EVENT_DATE" -> pageable = PageRequest.of(from, size, Sort.by(Sort.Direction.ASC, "eventDate"));
@@ -211,7 +164,6 @@ public class EventServiceImpl implements EventService {
             case null -> pageable = PageRequest.of(from, size, Sort.unsorted());
             default -> throw new IllegalStateException("Unexpected value: " + sort);
         }
-
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(event.state.eq(State.PUBLISHED));
         if (text != null) {
@@ -224,9 +176,7 @@ public class EventServiceImpl implements EventService {
         if (paid != null) {
             builder.and(event.paid.eq(paid));
         }
-        if (rangeStart != null && rangeEnd != null) {
-            builder.and(event.eventDate.between(rangeStart, rangeEnd));
-        }
+        builder.and(event.eventDate.between(rangeStart, rangeEnd));
         if (onlyAvailable) {
             builder.and(event.participantLimit.eq(0))
                     .or(event.confirmedRequests.lt(event.participantLimit));
@@ -238,20 +188,8 @@ public class EventServiceImpl implements EventService {
             eventList = eventRepository.findAll(pageable);
         }
         List<Event> events = eventList.getContent();
-
-        for (Event event : eventList) {
-            event.setConfirmedRequests(requestsRepository.countByStatusAndEventId(Status.CONFIRMED, event.getId()));
-        }
-        for (Event event : events) {
-            List<ViewStats> viewStats = statClient
-                    .getStats(event.getCreatedOn(), LocalDateTime.now(),
-                            List.of("/events/" + event.getId()), true);
-            if (!viewStats.isEmpty()) {
-                event.setViews(viewStats.getFirst().getHits());
-            } else {
-                event.setViews(0L);
-            }
-        }
+        setConfirmedRequestsList(events);
+        setViews(events);
         log.info("Found public {} events", events.size());
         return eventMapper.toEventShortDtoList(events);
     }
@@ -289,61 +227,13 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public EventFullDto updateEvent(Long userId, Long eventId, UpdateEventUserRequest updateEventUserRequest) {
+    public EventFullDto updateEvent(Long userId, Long eventId, UpdateEventRequest updateEventUserRequest) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
         if (event.getState() == State.PUBLISHED) {
             throw new ConflictException("The request status has been reached");
         }
-        if (updateEventUserRequest.getAnnotation() != null) {
-            event.setAnnotation(updateEventUserRequest.getAnnotation());
-        }
-        if (updateEventUserRequest.getCategory() != null) {
-            Category category = categoryRepository.findById(updateEventUserRequest.getCategory())
-                    .orElseThrow(() -> new NotFoundException("Category with id " + updateEventUserRequest.getCategory() + " not found"));
-            event.setCategory(category);
-        }
-        if (updateEventUserRequest.getDescription() != null) {
-            event.setDescription(updateEventUserRequest.getDescription());
-        }
-        if (updateEventUserRequest.getEventDate() != null) {
-            if (updateEventUserRequest.getEventDate().isAfter(LocalDateTime.now().plusHours(2))) {
-                event.setEventDate(updateEventUserRequest.getEventDate());
-            } else {
-                throw new BadRequestException("The date and time for which the event is scheduled cannot be earlier than one hours from the current moment");
-            }
-        }
-        if (updateEventUserRequest.getLocation() != null) {
-            event.setLocation(updateEventUserRequest.getLocation());
-        }
-        if (updateEventUserRequest.getPaid() != null) {
-            event.setPaid(updateEventUserRequest.getPaid());
-        }
-        if (updateEventUserRequest.getParticipantLimit() != null) {
-            event.setParticipantLimit(updateEventUserRequest.getParticipantLimit());
-        }
-        if (updateEventUserRequest.getRequestModeration() != null) {
-            event.setRequestModeration(updateEventUserRequest.getRequestModeration());
-        }
-        if (updateEventUserRequest.getStateAction() != null) {
-            if (updateEventUserRequest.getStateAction().equals(StateAction.SEND_TO_REVIEW)) {
-                if (!event.getState().equals(State.PUBLISHED)) {
-                    event.setState(State.PENDING);
-                } else {
-                    throw new ConflictException("Cannot publish the event because it's not in the right state: " + event.getState().name());
-                }
-            }
-            if (updateEventUserRequest.getStateAction().equals(StateAction.CANCEL_REVIEW)) {
-                if (!event.getState().equals(State.PUBLISHED)) {
-                    event.setState(State.CANCELED);
-                } else {
-                    throw new ConflictException("The event cannot be canceled because it is in the wrong state: " + event.getState().name());
-                }
-            }
-        }
-        if (updateEventUserRequest.getTitle() != null) {
-            event.setTitle(updateEventUserRequest.getTitle());
-        }
+        validUpdate(event, updateEventUserRequest);
         Event savedEvent = eventRepository.save(event);
         log.info("Saved updatedEvent: {}", savedEvent);
         return eventMapper.toEventFullDto(savedEvent);
@@ -391,4 +281,93 @@ public class EventServiceImpl implements EventService {
         log.info("Result: {}", eventRequestStatusUpdateResult);
         return eventRequestStatusUpdateResult;
     }
+
+    void setConfirmedRequestsList(List<Event> events) {
+        events.forEach(event -> {
+            event.setConfirmedRequests(requestsRepository
+                    .countByStatusAndEventId(Status.CONFIRMED, event.getId()));
+        });
+    }
+
+    void setViews(List<Event> events) {
+        List<String> uris = events.stream().map(event -> "/events/" + event.getId()).toList();
+        List<ViewStats> viewStatsList = statClient
+                .getStats(LocalDateTime.now().minusYears(20), LocalDateTime.now(), uris, true);
+        if (viewStatsList != null) {
+            Map<String, Long> uriAndHit = viewStatsList.stream()
+                    .collect(Collectors.toMap(ViewStats::getUri, ViewStats::getHits));
+            events.forEach(event -> {
+                event.setViews(uriAndHit
+                        .getOrDefault("/events/" + event.getId(), 0L));
+            });
+        }
+    }
+
+    private void validUpdate(Event event, UpdateEventRequest updatedEvent) {
+        if (updatedEvent.getAnnotation() != null) {
+            event.setAnnotation(updatedEvent.getAnnotation());
+        }
+        if (updatedEvent.getCategory() != null) {
+            Category category = categoryRepository.findById(updatedEvent.getCategory())
+                    .orElseThrow(() -> new NotFoundException("Category with id " + updatedEvent.getCategory() + " not found"));
+            event.setCategory(category);
+        }
+        if (updatedEvent.getDescription() != null) {
+            event.setDescription(updatedEvent.getDescription());
+        }
+        if (updatedEvent.getEventDate() != null) {
+            if (updatedEvent.getEventDate().isAfter(LocalDateTime.now().plusHours(1))) {
+                event.setEventDate(updatedEvent.getEventDate());
+            } else {
+                throw new BadRequestException("The date and time for which the event is scheduled cannot be earlier than one hours from the current moment");
+            }
+        }
+        if (updatedEvent.getLocation() != null) {
+            event.setLocation(updatedEvent.getLocation());
+        }
+        if (updatedEvent.getPaid() != null) {
+            event.setPaid(updatedEvent.getPaid());
+        }
+        if (updatedEvent.getParticipantLimit() != null) {
+            event.setParticipantLimit(updatedEvent.getParticipantLimit());
+        }
+        if (updatedEvent.getRequestModeration() != null) {
+            event.setRequestModeration(updatedEvent.getRequestModeration());
+        }
+        if (updatedEvent.getStateAction() != null) {
+            if (updatedEvent.getStateAction().equals(StateAction.PUBLISH_EVENT)) {
+                if (event.getState().equals(State.PENDING)) {
+                    event.setState(State.PUBLISHED);
+                } else {
+                    throw new ConflictException("Cannot publish the event because it's not in the right state: " + event.getState().name());
+                }
+            }
+            if (updatedEvent.getStateAction().equals(StateAction.REJECT_EVENT)) {
+                if (!event.getState().equals(State.PUBLISHED)) {
+                    event.setState(State.CANCELED);
+                } else {
+                    throw new ConflictException("The event cannot be canceled because it is in the wrong state: " + event.getState().name());
+                }
+            }
+            if (updatedEvent.getStateAction().equals(StateAction.SEND_TO_REVIEW)) {
+                if (!event.getState().equals(State.PUBLISHED)) {
+                    event.setState(State.PENDING);
+                } else {
+                    throw new ConflictException("Cannot publish the event because it's not in the right state: " + event.getState().name());
+                }
+            }
+            if (updatedEvent.getStateAction().equals(StateAction.CANCEL_REVIEW)) {
+                if (!event.getState().equals(State.PUBLISHED)) {
+                    event.setState(State.CANCELED);
+                } else {
+                    throw new ConflictException("The event cannot be canceled because it is in the wrong state: " + event.getState().name());
+                }
+            }
+        }
+        if (updatedEvent.getTitle() != null) {
+            event.setTitle(updatedEvent.getTitle());
+        }
+    }
+
+
 }

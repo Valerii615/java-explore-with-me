@@ -71,7 +71,7 @@ public class ErrorHandler {
         String errors = e.getBindingResult().getFieldErrors().stream()
                 .map(error -> String.format("Field: %s. Error: %s", error.getField(), error.getDefaultMessage()))
                 .collect(Collectors.joining(", "));
-
+        log.error(errors);
         return ApiError.builder()
                 .status(HttpStatus.BAD_REQUEST.name())
                 .reason("Incorrectly made request.")

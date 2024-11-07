@@ -5,10 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.explore_with_me.exceptions.NotFoundException;
-import ru.practicum.explore_with_me.user.repositories.UserRepository;
 import ru.practicum.explore_with_me.user.mappers.UserMapper;
 import ru.practicum.explore_with_me.user.models.User;
 import ru.practicum.explore_with_me.user.models.dto.UserDto;
+import ru.practicum.explore_with_me.user.repositories.UserRepository;
 
 import java.util.List;
 
