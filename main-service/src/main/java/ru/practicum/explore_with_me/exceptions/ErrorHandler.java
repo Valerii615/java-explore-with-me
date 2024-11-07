@@ -31,27 +31,27 @@ public class ErrorHandler {
             case DataIntegrityViolationException e -> {
                 status = HttpStatus.CONFLICT;
                 reason = "Integrity constraint has been violated";
-                message = exception.getMessage();
+                message = e.getMessage();
             }
             case MethodArgumentTypeMismatchException e -> {
                 status = HttpStatus.BAD_REQUEST;
                 reason = "Incorrectly made request.";
-                message = exception.getMessage();
+                message = e.getMessage();
             }
             case NotFoundException e -> {
                 status = HttpStatus.NOT_FOUND;
                 reason = "The required object was not found.";
-                message = exception.getMessage();
+                message = e.getMessage();
             }
             case BadRequestException e -> {
                 status = HttpStatus.BAD_REQUEST;
                 reason = "Incorrectly made request.";
-                message = exception.getMessage();
+                message = e.getMessage();
             }
             case ConflictException e -> {
                 status = HttpStatus.CONFLICT;
                 reason = "Integrity constraint has been violated.";
-                message = exception.getMessage();
+                message = e.getMessage();
             }
             default -> throw new IllegalStateException("Unexpected value: " + exception);
         }
