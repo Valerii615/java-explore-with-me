@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.explore_with_me.event.EventService;
+import ru.practicum.explore_with_me.event.services.EventService;
 import ru.practicum.explore_with_me.event.models.dto.*;
 import ru.practicum.explore_with_me.requests.model.dto.ParticipationRequestDto;
 

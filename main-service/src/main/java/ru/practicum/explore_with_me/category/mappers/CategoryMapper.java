@@ -1,4 +1,4 @@
-package ru.practicum.explore_with_me.category;
+package ru.practicum.explore_with_me.category.mappers;
 
 import org.mapstruct.Mapper;
 import ru.practicum.explore_with_me.category.models.Category;

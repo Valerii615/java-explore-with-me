@@ -1,14 +1,16 @@
-package ru.practicum.explore_with_me.compilation;
+package ru.practicum.explore_with_me.compilation.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.explore_with_me.compilation.mappers.CompilationMapper;
 import ru.practicum.explore_with_me.compilation.model.Compilation;
 import ru.practicum.explore_with_me.compilation.model.dto.CompilationDto;
 import ru.practicum.explore_with_me.compilation.model.dto.NewCompilationDto;
 import ru.practicum.explore_with_me.compilation.model.dto.UpdateCompilationRequest;
-import ru.practicum.explore_with_me.event.EventRepository;
+import ru.practicum.explore_with_me.compilation.repositories.CompilationRepository;
+import ru.practicum.explore_with_me.event.repositories.EventRepository;
 import ru.practicum.explore_with_me.exceptions.NotFoundException;
 
 import java.util.ArrayList;

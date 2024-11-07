@@ -1,7 +1,9 @@
 package ru.practicum.explore_with_me.exceptions;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -11,18 +13,56 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestControllerAdvice
 public class ErrorHandler {
 
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError handleException(final DataIntegrityViolationException e) {
-        return ApiError.builder()
-                .status(HttpStatus.CONFLICT.name())
-                .reason("Integrity constraint has been violated")
-                .message(e.getMessage())
+    @ExceptionHandler({BadRequestException.class,
+            DataIntegrityViolationException.class,
+            MethodArgumentTypeMismatchException.class,
+            NotFoundException.class,
+            ConflictException.class})
+    public ResponseEntity<ApiError> handleException(Exception exception) {
+        log.error(exception.getMessage());
+        HttpStatus status;
+        String reason;
+        String message;
+        switch (exception) {
+            case DataIntegrityViolationException e -> {
+                status = HttpStatus.CONFLICT;
+                reason = "Integrity constraint has been violated";
+                message = exception.getMessage();
+            }
+            case MethodArgumentTypeMismatchException e -> {
+                status = HttpStatus.BAD_REQUEST;
+                reason = "Incorrectly made request.";
+                message = exception.getMessage();
+            }
+            case NotFoundException e -> {
+                status = HttpStatus.NOT_FOUND;
+                reason = "The required object was not found.";
+                message = exception.getMessage();
+            }
+            case BadRequestException e -> {
+                status = HttpStatus.BAD_REQUEST;
+                reason = "Incorrectly made request.";
+                message = exception.getMessage();
+            }
+            case ConflictException e -> {
+                status = HttpStatus.CONFLICT;
+                reason = "Integrity constraint has been violated.";
+                message = exception.getMessage();
+            }
+            default -> throw new IllegalStateException("Unexpected value: " + exception);
+        }
+        ApiError apiError = ApiError.builder()
+                .status(status.name())
+                .reason(reason)
+                .message(message)
                 .timestamp(LocalDateTime.now())
                 .build();
+        return ResponseEntity.status(status).body(apiError);
+
     }
 
     @ExceptionHandler
@@ -39,49 +79,4 @@ public class ErrorHandler {
                 .timestamp(LocalDateTime.now())
                 .build();
     }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiError handleException(final MethodArgumentTypeMismatchException e) {
-        return ApiError.builder()
-                .status(HttpStatus.BAD_REQUEST.name())
-                .reason("Incorrectly made request.")
-                .message(e.getMessage())
-                .timestamp(LocalDateTime.now())
-                .build();
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ApiError handleException(final NotFoundException e) {
-        return ApiError.builder()
-                .status(HttpStatus.NOT_FOUND.name())
-                .reason("The required object was not found.")
-                .message(e.getMessage())
-                .timestamp(LocalDateTime.now())
-                .build();
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiError handleException(final BadRequest e) {
-        return ApiError.builder()
-                .status(HttpStatus.BAD_REQUEST.name())
-                .reason("Incorrectly made request.")
-                .message(e.getMessage())
-                .timestamp(LocalDateTime.now())
-                .build();
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError handleException(final ConflictException e) {
-        return ApiError.builder()
-                .status(HttpStatus.CONFLICT.name())
-                .reason("Integrity constraint has been violated.")
-                .message(e.getMessage())
-                .timestamp(LocalDateTime.now())
-                .build();
-    }
-
 }

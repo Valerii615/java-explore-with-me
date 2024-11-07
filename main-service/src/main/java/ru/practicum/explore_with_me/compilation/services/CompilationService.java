@@ -1,4 +1,4 @@
-package ru.practicum.explore_with_me.compilation;
+package ru.practicum.explore_with_me.compilation.services;
 
 import ru.practicum.explore_with_me.compilation.model.dto.CompilationDto;
 import ru.practicum.explore_with_me.compilation.model.dto.NewCompilationDto;

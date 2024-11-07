@@ -1,4 +1,4 @@
-package ru.practicum.explore_with_me.event;
+package ru.practicum.explore_with_me.event.services;
 
 import ru.practicum.explore_with_me.event.models.dto.*;
 import ru.practicum.explore_with_me.requests.model.dto.ParticipationRequestDto;

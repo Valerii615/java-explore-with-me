@@ -1,4 +1,4 @@
-package ru.practicum.explore_with_me.user;
+package ru.practicum.explore_with_me.user.services;
 
 import ru.practicum.explore_with_me.user.models.dto.UserDto;
 

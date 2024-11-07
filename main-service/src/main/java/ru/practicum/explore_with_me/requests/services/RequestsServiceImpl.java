@@ -1,18 +1,20 @@
-package ru.practicum.explore_with_me.requests;
+package ru.practicum.explore_with_me.requests.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.explore_with_me.event.EventRepository;
+import ru.practicum.explore_with_me.event.repositories.EventRepository;
 import ru.practicum.explore_with_me.event.models.Event;
 import ru.practicum.explore_with_me.event.models.State;
 import ru.practicum.explore_with_me.exceptions.ConflictException;
 import ru.practicum.explore_with_me.exceptions.NotFoundException;
+import ru.practicum.explore_with_me.requests.mappers.RequestsMapper;
 import ru.practicum.explore_with_me.requests.model.ParticipationRequest;
 import ru.practicum.explore_with_me.requests.model.Status;
 import ru.practicum.explore_with_me.requests.model.dto.ParticipationRequestDto;
-import ru.practicum.explore_with_me.user.UserRepository;
+import ru.practicum.explore_with_me.requests.repositories.RequestsRepository;
+import ru.practicum.explore_with_me.user.repositories.UserRepository;
 import ru.practicum.explore_with_me.user.models.User;
 
 import java.time.LocalDateTime;

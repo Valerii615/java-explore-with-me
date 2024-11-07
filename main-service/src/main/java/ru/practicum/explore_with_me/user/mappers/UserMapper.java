@@ -1,4 +1,4 @@
-package ru.practicum.explore_with_me.user;
+package ru.practicum.explore_with_me.user.mappers;
 
 import org.mapstruct.Mapper;
 import ru.practicum.explore_with_me.user.models.User;

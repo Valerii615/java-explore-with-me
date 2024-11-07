@@ -1,4 +1,4 @@
-package ru.practicum.explore_with_me.requests;
+package ru.practicum.explore_with_me.requests.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

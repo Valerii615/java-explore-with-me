@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.explore_with_me.StatClient;
-import ru.practicum.explore_with_me.event.EventService;
+import ru.practicum.explore_with_me.event.services.EventService;
 import ru.practicum.explore_with_me.event.models.dto.EventFullDto;
 import ru.practicum.explore_with_me.event.models.dto.EventShortDto;
 
@@ -41,6 +41,7 @@ public class EventPublicController {
                                             @RequestParam(defaultValue = "10") Integer size,
                                             HttpServletRequest request) {
         log.info("Start of endpoint processing (get) /events?");
+        statClient.saveHit("ewm-main-service", request);
         LocalDateTime start = DATE_TIME_MIN;
         LocalDateTime end = DATE_TIME_MAX;
         if (rangeStart != null) {

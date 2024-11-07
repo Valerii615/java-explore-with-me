@@ -4,7 +4,7 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.explore_with_me.event.EventService;
+import ru.practicum.explore_with_me.event.services.EventService;
 import ru.practicum.explore_with_me.event.models.dto.EventFullDto;
 import ru.practicum.explore_with_me.event.models.dto.UpdateEventAdminRequest;
 

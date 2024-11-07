@@ -1,4 +1,4 @@
-package ru.practicum.explore_with_me.compilation;
+package ru.practicum.explore_with_me.compilation.mappers;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

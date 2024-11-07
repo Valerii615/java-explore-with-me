@@ -1,4 +1,4 @@
-package ru.practicum.explore_with_me.event;
+package ru.practicum.explore_with_me.event.mappers;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

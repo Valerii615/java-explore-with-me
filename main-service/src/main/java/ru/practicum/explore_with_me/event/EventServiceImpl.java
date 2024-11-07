@@ -10,22 +10,25 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.explore_with_me.StatClient;
-import ru.practicum.explore_with_me.category.CategoryRepository;
+import ru.practicum.explore_with_me.category.repositories.CategoryRepository;
 import ru.practicum.explore_with_me.category.models.Category;
+import ru.practicum.explore_with_me.event.mappers.EventMapper;
 import ru.practicum.explore_with_me.event.models.Event;
 import ru.practicum.explore_with_me.event.models.State;
 import ru.practicum.explore_with_me.event.models.StateAction;
 import ru.practicum.explore_with_me.event.models.dto.*;
-import ru.practicum.explore_with_me.exceptions.BadRequest;
+import ru.practicum.explore_with_me.event.repositories.EventRepository;
+import ru.practicum.explore_with_me.event.services.EventService;
+import ru.practicum.explore_with_me.exceptions.BadRequestException;
 import ru.practicum.explore_with_me.exceptions.ConflictException;
 import ru.practicum.explore_with_me.exceptions.NotFoundException;
 import ru.practicum.explore_with_me.models.ViewStats;
-import ru.practicum.explore_with_me.requests.RequestsMapper;
-import ru.practicum.explore_with_me.requests.RequestsRepository;
+import ru.practicum.explore_with_me.requests.mappers.RequestsMapper;
+import ru.practicum.explore_with_me.requests.repositories.RequestsRepository;
 import ru.practicum.explore_with_me.requests.model.ParticipationRequest;
 import ru.practicum.explore_with_me.requests.model.Status;
 import ru.practicum.explore_with_me.requests.model.dto.ParticipationRequestDto;
-import ru.practicum.explore_with_me.user.UserRepository;
+import ru.practicum.explore_with_me.user.repositories.UserRepository;
 import ru.practicum.explore_with_me.user.models.User;
 
 import java.time.LocalDateTime;
@@ -92,7 +95,7 @@ public class EventServiceImpl implements EventService {
             if (updateEvent.getEventDate().isAfter(LocalDateTime.now().plusHours(1))) {
                 event.setEventDate(updateEvent.getEventDate());
             } else {
-                throw new BadRequest("The date and time for which the event is scheduled cannot be earlier than one hours from the current moment");
+                throw new BadRequestException("The date and time for which the event is scheduled cannot be earlier than one hours from the current moment");
             }
         }
         if (updateEvent.getLocation() != null) {
@@ -198,7 +201,7 @@ public class EventServiceImpl implements EventService {
                 " from:{}," +
                 " size:{}", text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size);
         if (rangeEnd.isBefore(rangeStart)) {
-            throw new BadRequest("The start time must be earlier than the end.");
+            throw new BadRequestException("The start time must be earlier than the end.");
         }
 
         Pageable pageable;
@@ -307,7 +310,7 @@ public class EventServiceImpl implements EventService {
             if (updateEventUserRequest.getEventDate().isAfter(LocalDateTime.now().plusHours(2))) {
                 event.setEventDate(updateEventUserRequest.getEventDate());
             } else {
-                throw new BadRequest("The date and time for which the event is scheduled cannot be earlier than one hours from the current moment");
+                throw new BadRequestException("The date and time for which the event is scheduled cannot be earlier than one hours from the current moment");
             }
         }
         if (updateEventUserRequest.getLocation() != null) {

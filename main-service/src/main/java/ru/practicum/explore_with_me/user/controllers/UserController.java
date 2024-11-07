@@ -1,4 +1,4 @@
-package ru.practicum.explore_with_me.user;
+package ru.practicum.explore_with_me.user.controllers;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.explore_with_me.user.services.UserServiceImpl;
 import ru.practicum.explore_with_me.user.models.dto.UserDto;
 
 import java.util.List;
