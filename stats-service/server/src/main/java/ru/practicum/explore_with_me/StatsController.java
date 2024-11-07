@@ -24,7 +24,7 @@ public class StatsController {
     @PostMapping("/hit")
     @ResponseStatus(HttpStatus.CREATED)
     public void addEndpoint(@Valid @RequestBody EndpointHit endpointHit) {
-        log.info("Start of endpoint processing /hit");
+        log.info("Start of endpoint processing (post) /hit");
         statsServiceImpl.addEndpoint(endpointHit);
     }
 
@@ -33,7 +33,7 @@ public class StatsController {
                                     @RequestParam String end,
                                     @RequestParam(required = false) List<String> uris,
                                     @RequestParam(required = false, defaultValue = "false") Boolean unique) {
-        log.info("Start of endpoint processing /stats");
+        log.info("Start of endpoint processing (get) /stats");
         LocalDateTime startTime = LocalDateTime.parse(start, formatter);
         LocalDateTime endTime = LocalDateTime.parse(end, formatter);
         return statsServiceImpl.getStats(startTime, endTime, uris, unique);
