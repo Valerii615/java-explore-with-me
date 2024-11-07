@@ -2,14 +2,11 @@ package ru.practicum.explore_with_me.compilation;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 import ru.practicum.explore_with_me.compilation.model.Compilation;
 import ru.practicum.explore_with_me.compilation.model.dto.CompilationDto;
 import ru.practicum.explore_with_me.compilation.model.dto.NewCompilationDto;
-import ru.practicum.explore_with_me.event.models.Event;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Mapper
 public interface CompilationMapper {
