@@ -265,7 +265,7 @@ public class EventServiceImpl implements EventService {
             participationRequest.setStatus(updateRequest.getStatus());
             requestsRepository.save(participationRequest);
         }
-        if (event.getParticipantLimit() == requestsRepository.countByIdAndStatus(eventId, Status.CONFIRMED)) {
+        if (event.getParticipantLimit().equals(requestsRepository.countByIdAndStatus(eventId, Status.CONFIRMED))) {
             List<ParticipationRequest> participationRequests = requestsRepository.findByIdAndStatus(eventId, Status.PENDING);
             for (ParticipationRequest participationRequest : participationRequests) {
                 participationRequest.setStatus(Status.REJECTED);
