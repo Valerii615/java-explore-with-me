@@ -284,7 +284,7 @@ public class EventServiceImpl implements EventService {
 
     void setConfirmedRequestsList(List<Event> events) {
         events.forEach(event -> event.setConfirmedRequests(requestsRepository
-                    .countByStatusAndEventId(Status.CONFIRMED, event.getId())));
+                .countByStatusAndEventId(Status.CONFIRMED, event.getId())));
     }
 
     void setViews(List<Event> events) {
