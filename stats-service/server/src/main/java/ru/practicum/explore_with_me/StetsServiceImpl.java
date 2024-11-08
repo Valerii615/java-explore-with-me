@@ -31,6 +31,9 @@ public class StetsServiceImpl implements StatsService {
     @Override
     public List<ViewStats> getStats(LocalDateTime startTime, LocalDateTime endTime, List<String> uris, Boolean unique) {
         log.info("Start getting stats list");
+        if (startTime.isAfter(endTime)) {
+            throw new BadRequestException("Start time is after end time");
+        }
         List<ViewStats> viewStats;
         if (uris == null || uris.isEmpty()) {
             if (unique) {

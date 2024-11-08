@@ -1,4 +1,4 @@
-package ru.practicum.explore_with_me.event;
+package ru.practicum.explore_with_me.event.services;
 
 import com.querydsl.core.BooleanBuilder;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +18,6 @@ import ru.practicum.explore_with_me.event.models.State;
 import ru.practicum.explore_with_me.event.models.StateAction;
 import ru.practicum.explore_with_me.event.models.dto.*;
 import ru.practicum.explore_with_me.event.repositories.EventRepository;
-import ru.practicum.explore_with_me.event.services.EventService;
 import ru.practicum.explore_with_me.exceptions.BadRequestException;
 import ru.practicum.explore_with_me.exceptions.ConflictException;
 import ru.practicum.explore_with_me.exceptions.NotFoundException;
