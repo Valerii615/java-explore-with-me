@@ -50,7 +50,7 @@ public class RequestsServiceImpl implements RequestsService {
                 .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found"));
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
-        if (event.getInitiator().getId() == user.getId()) {
+        if (event.getInitiator().getId().equals(user.getId())) {
             throw new ConflictException("The initiator of the event cannot add a request to participate in his event");
         }
         if (!event.getState().equals(State.PUBLISHED)) {
