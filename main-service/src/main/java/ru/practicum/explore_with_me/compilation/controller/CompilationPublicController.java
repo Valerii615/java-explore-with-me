@@ -21,7 +21,7 @@ public class CompilationPublicController {
     public List<CompilationDto> getCompilations(@RequestParam(required = false) Boolean pinned,
                                                 @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
                                                 @Positive @RequestParam(defaultValue = "10") Integer size) {
-        log.info("Start of endpoint processing (get) /compilations?pinned={}}&from={}&size={}", pinned, from, size);
+        log.info("Start of endpoint processing (get) /compilations?pinned={}&from={}&size={}", pinned, from, size);
         return compilationService.getCompilations(pinned, from, size);
     }
 
