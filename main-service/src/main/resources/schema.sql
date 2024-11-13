@@ -1,4 +1,11 @@
-drop table if exists requests, compilations_events, events, users, categories, locations, compilations;
+drop table if exists requests,
+    compilations_events,
+    compilations,
+    comments,
+    events,
+    users,
+    categories,
+    locations;
 
 create table if not exists users
 (
@@ -61,4 +68,14 @@ create table if not exists compilations_events
 (
     compilation bigint references compilations (compilation_id),
     event       bigint references events (event_id)
+);
+
+create table if not exists comments
+(
+    comment_id  bigint generated always as identity primary key,
+    event       bigint references events (event_id) on delete cascade not null,
+    commentator bigint references users (user_id) on delete restrict  not null,
+    text        varchar                                               not null,
+    moderation  varchar                                               not null,
+    created_At   timestamp without time zone                           not null
 );
