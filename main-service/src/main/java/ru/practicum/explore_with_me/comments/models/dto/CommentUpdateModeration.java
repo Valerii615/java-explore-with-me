@@ -1,5 +1,6 @@
 package ru.practicum.explore_with_me.comments.models.dto;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,5 +12,6 @@ import ru.practicum.explore_with_me.comments.models.Moderation;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CommentUpdateModeration {
+    @NotNull
     private Moderation moderation;
 }

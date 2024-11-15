@@ -77,5 +77,5 @@ create table if not exists comments
     commentator bigint references users (user_id) on delete restrict  not null,
     text        varchar                                               not null,
     moderation  varchar                                               not null,
-    created_At   timestamp without time zone                           not null
+    created_At  timestamp without time zone                           not null
 );

@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.explore_with_me.comments.models.dto.CommentDto;
 import ru.practicum.explore_with_me.comments.services.CommentService;
 
+import java.util.List;
+
 @Slf4j
 @RestController
 @RequestMapping("/comments")
@@ -20,7 +22,7 @@ public class CommentPublicController {
     }
 
     @GetMapping
-    public CommentDto getCommentsByEventId(@RequestParam Long eventId) {
+    public List<CommentDto> getCommentsByEventId(@RequestParam Long eventId) {
         log.info("Start of endpoint processing (get) /comments?eventId={}", eventId);
         return commentService.getCommentsByEventId(eventId);
     }

@@ -1,5 +1,6 @@
 package ru.practicum.explore_with_me.comments.services;
 
+import com.querydsl.core.BooleanBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -17,13 +18,17 @@ import ru.practicum.explore_with_me.comments.repositories.CommentRepository;
 import ru.practicum.explore_with_me.event.models.Event;
 import ru.practicum.explore_with_me.event.models.State;
 import ru.practicum.explore_with_me.event.repositories.EventRepository;
+import ru.practicum.explore_with_me.exceptions.BadRequestException;
 import ru.practicum.explore_with_me.exceptions.ConflictException;
 import ru.practicum.explore_with_me.exceptions.NotFoundException;
 import ru.practicum.explore_with_me.user.models.User;
 import ru.practicum.explore_with_me.user.repositories.UserRepository;
+import ru.practicum.explore_with_me.util.Util;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
+import static ru.practicum.explore_with_me.comments.models.QComment.comment;
 
 @Slf4j
 @Service
@@ -37,12 +42,21 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public CommentDto getCommentById(Long commentId) {
-        return null;
+        log.info("Get comment by id: {}", commentId);
+        Comment comment = commentRepository.findByIdAndModeration(commentId, Moderation.PUBLISHED);
+        if (comment == null) {
+            throw new NotFoundException("Comment with id " + commentId + " not found");
+        }
+        log.info("Found comment {}", comment);
+        return commentMapper.toDto(comment);
     }
 
     @Override
-    public CommentDto getCommentsByEventId(Long eventId) {
-        return null;
+    public List<CommentDto> getCommentsByEventId(Long eventId) {
+        log.info("Get comment by event id: {}", eventId);
+        List<Comment> commentList = commentRepository.findByEventIdAndModeration(eventId, Moderation.PUBLISHED);
+        log.info("Found {} comments", commentList.size());
+        return commentMapper.toDtoList(commentList);
     }
 
     @Override
@@ -64,12 +78,12 @@ public class CommentServiceImpl implements CommentService {
         }
         Comment savedComment = commentRepository
                 .save(Comment.builder()
-                .event(event)
-                .commentator(user)
-                .text(commentRequest.getText())
-                .moderation(Moderation.PENDING)
-                .createdAt(LocalDateTime.now())
-                .build());
+                        .event(event)
+                        .commentator(user)
+                        .text(commentRequest.getText())
+                        .moderation(Moderation.PENDING)
+                        .createdAt(LocalDateTime.now())
+                        .build());
         log.info("Comment saved: {}", savedComment);
         return commentMapper.toFullDto(savedComment);
     }
@@ -109,13 +123,44 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public List<CommentFullDto> getComments(List<Long> users, List<Long> comments, LocalDateTime rangeStart, LocalDateTime rangeEnd, Integer from, Integer size) {
-        return List.of();
+    public List<CommentFullDto> getComments(List<Long> users,
+                                            List<Long> comments,
+                                            LocalDateTime rangeStart,
+                                            LocalDateTime rangeEnd,
+                                            Integer from, Integer size) {
+        log.info("Getting comments by admin parameters");
+        if (rangeStart == null) {
+            rangeStart = Util.DATE_TIME_MIN;
+        }
+        if (rangeEnd == null) {
+            rangeEnd = Util.DATE_TIME_MAX;
+        }
+        if (rangeEnd.isBefore(rangeStart)) {
+            throw new BadRequestException("The start time must be earlier than the end.");
+        }
+        Pageable pageable = PageRequest.of(from / size, size);
+        BooleanBuilder builder = new BooleanBuilder();
+        if (users != null) {
+            builder.and(comment.commentator.id.in(users));
+        }
+        if (comments != null) {
+            builder.and(comment.commentator.id.in(comments));
+        }
+        builder.and(comment.createdAt.between(rangeStart, rangeEnd));
+        List<Comment> commentList = commentRepository.findAll(builder, pageable).getContent();
+        log.info("Comments with parameters found: {}", commentList);
+        return commentMapper.toFullDtoList(commentList);
     }
 
     @Override
     @Transactional
     public CommentFullDto updateCommentStatusModeration(Long commentId, CommentUpdateModeration commentUpdateModeration) {
-        return null;
+        log.info("Updating comment moderation status, commentId: {}, status: {}", commentId, commentUpdateModeration);
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new NotFoundException("Comment with id " + commentId + " not found"));
+        comment.setModeration(commentUpdateModeration.getModeration());
+        Comment updatedComment = commentRepository.save(comment);
+        log.info("Comment moderation status updated: {}", updatedComment);
+        return commentMapper.toFullDto(updatedComment);
     }
 }

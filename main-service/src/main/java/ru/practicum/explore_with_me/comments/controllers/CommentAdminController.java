@@ -1,5 +1,6 @@
 package ru.practicum.explore_with_me.comments.controllers;
 
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -35,7 +36,7 @@ public class CommentAdminController {
 
     @PatchMapping("/{commentId}")
     public CommentFullDto updateCommentStatusModeration(@PathVariable Long commentId,
-                                                        @RequestBody CommentUpdateModeration commentUpdateModeration) {
+                                                        @RequestBody @Valid CommentUpdateModeration commentUpdateModeration) {
         log.info("Start endpoint processing (patch) /admin/comments/{}", commentId);
         return commentService.updateCommentStatusModeration(commentId, commentUpdateModeration);
     }

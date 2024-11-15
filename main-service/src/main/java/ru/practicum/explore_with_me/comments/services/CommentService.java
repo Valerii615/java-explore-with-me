@@ -11,7 +11,7 @@ import java.util.List;
 public interface CommentService {
     CommentDto getCommentById(Long commentId);
 
-    CommentDto getCommentsByEventId(Long eventId);
+    List<CommentDto> getCommentsByEventId(Long eventId);
 
     CommentFullDto addComment(Long userId, Long eventId, CommentRequest commentRequest);
 
