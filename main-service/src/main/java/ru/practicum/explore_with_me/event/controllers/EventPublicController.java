@@ -27,7 +27,7 @@ public class EventPublicController {
     public EventFullDto getEventById(@PathVariable Long id, HttpServletRequest request) {
         log.info("Start of endpoint processing (get) /events/{}", id);
         statClient.saveHit("ewm-main-service", request);
-        return eventService.getEventById(id);
+        return eventService.getEventFullDtoById(id);
     }
 
     @GetMapping

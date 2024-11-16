@@ -1,5 +1,6 @@
 package ru.practicum.explore_with_me.event.services;
 
+import ru.practicum.explore_with_me.event.models.Event;
 import ru.practicum.explore_with_me.event.models.dto.*;
 import ru.practicum.explore_with_me.requests.model.dto.ParticipationRequestDto;
 
@@ -32,7 +33,7 @@ public interface EventService {
                                      Integer from,
                                      Integer size);
 
-    EventFullDto getEventById(Long eventId);
+    EventFullDto getEventFullDtoById(Long eventId);
 
     EventFullDto getEventByIdAndUserId(Long userId, Long eventId);
 
@@ -41,4 +42,6 @@ public interface EventService {
     EventRequestStatusUpdateResult eventRequestStatusUpdateResult(Long userId, Long eventId, EventRequestStatusUpdateRequest updateRequest);
 
     EventFullDto updateEvent(Long userId, Long eventId, UpdateEventRequest updateEventUserRequest);
+
+    Event getEventById(Long eventId);
 }

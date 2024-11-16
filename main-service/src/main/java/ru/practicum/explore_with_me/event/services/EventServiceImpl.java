@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.explore_with_me.StatClient;
 import ru.practicum.explore_with_me.category.models.Category;
-import ru.practicum.explore_with_me.category.repositories.CategoryRepository;
+import ru.practicum.explore_with_me.category.services.CategoryService;
 import ru.practicum.explore_with_me.event.mappers.EventMapper;
 import ru.practicum.explore_with_me.event.models.Event;
 import ru.practicum.explore_with_me.event.models.State;
@@ -44,7 +44,7 @@ import static ru.practicum.explore_with_me.util.Util.DATE_FORMATTER;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class EventServiceImpl implements EventService {
-    private final CategoryRepository categoryRepository;
+    private final CategoryService categoryService;
     private final UserService userService;
     private final EventRepository eventRepository;
     private final EventMapper eventMapper;
@@ -57,8 +57,7 @@ public class EventServiceImpl implements EventService {
     public EventFullDto addEvent(Long userId, NewEventDto newEventDto) {
         log.info("Adding new event: {}", newEventDto);
         User user = userService.getUserById(userId);
-        Category category = categoryRepository.findById(Long.valueOf(newEventDto.getCategory()))
-                .orElseThrow(() -> new NotFoundException("Category with id " + newEventDto.getCategory() + " not found"));
+        Category category = categoryService.getCategoryById(Long.valueOf(newEventDto.getCategory()));
         if (newEventDto.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {
             throw new ConflictException("The date and time for which the event is scheduled cannot be earlier than two hours from the current moment");
         }
@@ -79,8 +78,7 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional
     public EventFullDto updateEvent(Long eventId, UpdateEventRequest updateEvent) {
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
+        Event event = getEventById(eventId);
         validUpdate(event, updateEvent);
         Event savedEvent = eventRepository.save(event);
         log.info("Saved event: {}", savedEvent);
@@ -193,7 +191,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public EventFullDto getEventById(Long eventId) {
+    public EventFullDto getEventFullDtoById(Long eventId) {
         log.info("Getting event with id: {}", eventId);
         Event event = eventRepository.getPublishedEventById(eventId, State.PUBLISHED);
         if (event == null) {
@@ -226,8 +224,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventFullDto updateEvent(Long userId, Long eventId, UpdateEventRequest updateEventUserRequest) {
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
+        Event event = getEventById(eventId);
         if (event.getState() == State.PUBLISHED) {
             throw new ConflictException("The request status has been reached");
         }
@@ -242,8 +239,7 @@ public class EventServiceImpl implements EventService {
     public EventRequestStatusUpdateResult eventRequestStatusUpdateResult(Long userId,
                                                                          Long eventId,
                                                                          EventRequestStatusUpdateRequest updateRequest) {
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
+        Event event = getEventById(eventId);
         List<ParticipationRequest> participationRequestList = requestsRepository.findByStatusAndEventId(Status.CONFIRMED, eventId);
 
         if (event.getParticipantLimit() != 0 && event.getParticipantLimit() <= participationRequestList.size()) {
@@ -280,6 +276,12 @@ public class EventServiceImpl implements EventService {
         return eventRequestStatusUpdateResult;
     }
 
+    @Override
+    public Event getEventById(Long eventId) {
+        return eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
+    }
+
     void setConfirmedRequestsList(List<Event> events) {
         events.forEach(event -> event.setConfirmedRequests(requestsRepository
                 .countByStatusAndEventId(Status.CONFIRMED, event.getId())));
@@ -302,8 +304,7 @@ public class EventServiceImpl implements EventService {
             event.setAnnotation(updatedEvent.getAnnotation());
         }
         if (updatedEvent.getCategory() != null) {
-            Category category = categoryRepository.findById(updatedEvent.getCategory())
-                    .orElseThrow(() -> new NotFoundException("Category with id " + updatedEvent.getCategory() + " not found"));
+            Category category = categoryService.getCategoryById(updatedEvent.getCategory());
             event.setCategory(category);
         }
         if (updatedEvent.getDescription() != null) {
@@ -362,6 +363,4 @@ public class EventServiceImpl implements EventService {
             event.setTitle(updatedEvent.getTitle());
         }
     }
-
-
 }

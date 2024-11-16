@@ -27,6 +27,6 @@ public class CategoryPublicController {
     @GetMapping("/{catId}")
     public CategoryDto getCategoryById(@PathVariable Long catId) {
         log.info("Start of endpoint processing (get) /categories?catId={}", catId);
-        return categoryService.getCategoryById(catId);
+        return categoryService.getCategoryDtoById(catId);
     }
 }

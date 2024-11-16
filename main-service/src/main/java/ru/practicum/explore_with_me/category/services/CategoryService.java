@@ -1,5 +1,6 @@
 package ru.practicum.explore_with_me.category.services;
 
+import ru.practicum.explore_with_me.category.models.Category;
 import ru.practicum.explore_with_me.category.models.dto.CategoryDto;
 
 import java.util.List;
@@ -14,5 +15,7 @@ public interface CategoryService {
 
     List<CategoryDto> getAllCategories(Integer from, Integer size);
 
-    CategoryDto getCategoryById(Long catId);
+    CategoryDto getCategoryDtoById(Long catId);
+
+    Category getCategoryById(Long catId);
 }

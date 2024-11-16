@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.explore_with_me.event.models.Event;
 import ru.practicum.explore_with_me.event.models.State;
-import ru.practicum.explore_with_me.event.repositories.EventRepository;
+import ru.practicum.explore_with_me.event.services.EventService;
 import ru.practicum.explore_with_me.exceptions.ConflictException;
 import ru.practicum.explore_with_me.exceptions.NotFoundException;
 import ru.practicum.explore_with_me.requests.mappers.RequestsMapper;
@@ -29,7 +29,7 @@ import static ru.practicum.explore_with_me.util.Util.DATE_FORMATTER;
 public class RequestsServiceImpl implements RequestsService {
     private final RequestsRepository requestsRepository;
     private final UserService userService;
-    private final EventRepository eventRepository;
+    private final EventService eventService;
     private final RequestsMapper requestsMapper;
 
     @Override
@@ -46,8 +46,7 @@ public class RequestsServiceImpl implements RequestsService {
     public ParticipationRequestDto addRequest(Long userId, Long eventId) {
         log.info("Adding request userId: {}, eventId: {}", userId, eventId);
         User user = userService.getUserById(userId);
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
+        Event event = eventService.getEventById(eventId);
         if (event.getInitiator().getId().equals(user.getId())) {
             throw new ConflictException("The initiator of the event cannot add a request to participate in his event");
         }
