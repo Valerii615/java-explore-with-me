@@ -28,7 +28,7 @@ import ru.practicum.explore_with_me.requests.model.Status;
 import ru.practicum.explore_with_me.requests.model.dto.ParticipationRequestDto;
 import ru.practicum.explore_with_me.requests.repositories.RequestsRepository;
 import ru.practicum.explore_with_me.user.models.User;
-import ru.practicum.explore_with_me.user.repositories.UserRepository;
+import ru.practicum.explore_with_me.user.services.UserService;
 import ru.practicum.explore_with_me.util.Util;
 
 import java.time.LocalDateTime;
@@ -45,7 +45,7 @@ import static ru.practicum.explore_with_me.util.Util.DATE_FORMATTER;
 @Transactional(readOnly = true)
 public class EventServiceImpl implements EventService {
     private final CategoryRepository categoryRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final EventRepository eventRepository;
     private final EventMapper eventMapper;
     private final RequestsRepository requestsRepository;
@@ -56,8 +56,7 @@ public class EventServiceImpl implements EventService {
     @Transactional
     public EventFullDto addEvent(Long userId, NewEventDto newEventDto) {
         log.info("Adding new event: {}", newEventDto);
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found"));
+        User user = userService.getUserById(userId);
         Category category = categoryRepository.findById(Long.valueOf(newEventDto.getCategory()))
                 .orElseThrow(() -> new NotFoundException("Category with id " + newEventDto.getCategory() + " not found"));
         if (newEventDto.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {

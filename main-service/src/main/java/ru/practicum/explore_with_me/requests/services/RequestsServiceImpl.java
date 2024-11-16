@@ -15,7 +15,7 @@ import ru.practicum.explore_with_me.requests.model.Status;
 import ru.practicum.explore_with_me.requests.model.dto.ParticipationRequestDto;
 import ru.practicum.explore_with_me.requests.repositories.RequestsRepository;
 import ru.practicum.explore_with_me.user.models.User;
-import ru.practicum.explore_with_me.user.repositories.UserRepository;
+import ru.practicum.explore_with_me.user.services.UserService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,15 +28,14 @@ import static ru.practicum.explore_with_me.util.Util.DATE_FORMATTER;
 @Transactional(readOnly = true)
 public class RequestsServiceImpl implements RequestsService {
     private final RequestsRepository requestsRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final EventRepository eventRepository;
     private final RequestsMapper requestsMapper;
 
     @Override
     public List<ParticipationRequestDto> getRequests(Long userId) {
         log.info("Get requests for {}", userId);
-        userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found"));
+        userService.getUserById(userId);
         List<ParticipationRequest> participationRequestList = requestsRepository.findByRequesterId(userId);
         log.info("Found {} requests", participationRequestList.size());
         return requestsMapper.toParticipationRequestDtoList(participationRequestList);
@@ -46,8 +45,7 @@ public class RequestsServiceImpl implements RequestsService {
     @Transactional
     public ParticipationRequestDto addRequest(Long userId, Long eventId) {
         log.info("Adding request userId: {}, eventId: {}", userId, eventId);
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found"));
+        User user = userService.getUserById(userId);
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
         if (event.getInitiator().getId().equals(user.getId())) {

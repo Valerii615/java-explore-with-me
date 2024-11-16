@@ -22,7 +22,7 @@ import ru.practicum.explore_with_me.exceptions.BadRequestException;
 import ru.practicum.explore_with_me.exceptions.ConflictException;
 import ru.practicum.explore_with_me.exceptions.NotFoundException;
 import ru.practicum.explore_with_me.user.models.User;
-import ru.practicum.explore_with_me.user.repositories.UserRepository;
+import ru.practicum.explore_with_me.user.services.UserService;
 import ru.practicum.explore_with_me.util.Util;
 
 import java.time.LocalDateTime;
@@ -37,16 +37,14 @@ import static ru.practicum.explore_with_me.comments.models.QComment.comment;
 public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final EventRepository eventRepository;
 
     @Override
     public CommentDto getCommentById(Long commentId) {
         log.info("Get comment by id: {}", commentId);
-        Comment comment = commentRepository.findByIdAndModeration(commentId, Moderation.PUBLISHED);
-        if (comment == null) {
-            throw new NotFoundException("Comment with id " + commentId + " not found");
-        }
+        Comment comment = commentRepository.findByIdAndModeration(commentId, Moderation.PUBLISHED)
+                .orElseThrow(() -> new NotFoundException("Comment with id " + commentId + " not found"));
         log.info("Found comment {}", comment);
         return commentMapper.toDto(comment);
     }
@@ -63,11 +61,7 @@ public class CommentServiceImpl implements CommentService {
     @Transactional
     public CommentFullDto addComment(Long userId, Long eventId, CommentRequest commentRequest) {
         log.info("Adding comment userId: {}, eventId: {}, comment: {}", userId, eventId, commentRequest);
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> {
-                    log.error("User with id: {} not found", userId);
-                    return new NotFoundException("User with id " + userId + " not found");
-                });
+        User user = userService.getUserById(userId);
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> {
                     log.error("Event with id: {} not found", eventId);
@@ -100,10 +94,8 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public CommentFullDto getCommentByIdAndUserId(Long userId, Long commentId) {
         log.info("Getting comment userId: {}, commentId: {}", userId, commentId);
-        Comment comment = commentRepository.findByIdAndCommentatorId(commentId, userId);
-        if (comment == null) {
-            throw new NotFoundException("Comment with id " + commentId + " not found");
-        }
+        Comment comment = commentRepository.findByIdAndCommentatorId(commentId, userId)
+                .orElseThrow(() -> new NotFoundException("Comment with id " + commentId + " not found"));
         log.info("Found comment: {}", comment);
         return commentMapper.toFullDto(comment);
     }
@@ -112,10 +104,8 @@ public class CommentServiceImpl implements CommentService {
     @Transactional
     public CommentFullDto updateComment(Long userId, Long commentId, CommentRequest commentRequest) {
         log.info("Updating comment userId: {}, commentId: {}, comment: {}", userId, commentId, commentRequest);
-        Comment comment = commentRepository.findByIdAndCommentatorId(commentId, userId);
-        if (comment == null) {
-            throw new NotFoundException("Comment with id " + commentId + " not found");
-        }
+        Comment comment = commentRepository.findByIdAndCommentatorId(commentId, userId)
+                .orElseThrow(() -> new NotFoundException("Comment with id " + commentId + " not found"));
         comment.setText(commentRequest.getText());
         Comment updatedComment = commentRepository.save(comment);
         log.info("Comment updated: {}", updatedComment);
